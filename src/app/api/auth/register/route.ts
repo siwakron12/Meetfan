@@ -17,6 +17,7 @@ export async function POST(request: Request) {
 
     return ok({ success: true, user }, { status: 201 });
   } catch (error) {
+    console.error("Registration error:", error);
     if (error instanceof Error) {
       if (error.message === "INVALID_NAME") return fail("Name is too short", 400);
       if (error.message === "INVALID_EMAIL") return fail("Invalid email", 400);
