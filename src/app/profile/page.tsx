@@ -11,6 +11,7 @@ interface JoinedEvent {
   location: string;
   eventDate: string;
   joinedAt: string;
+  attendeeCount: number;
 }
 
 interface ProfileInfo {
@@ -270,6 +271,8 @@ export default function ProfilePage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [joinedEvents, setJoinedEvents] = useState<JoinedEvent[]>([]);
+  const [leavingEventId, setLeavingEventId] = useState<string | null>(null);
+  const [confirmingLeaveEventId, setConfirmingLeaveEventId] = useState<string | null>(null);
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>(EMPTY_PROFILE);
 
   const missingFields = useMemo(() => {
@@ -332,6 +335,29 @@ export default function ProfilePage() {
     setProfileInfo(data.profile);
     setIsSettingsOpen(false);
   };
+
+  const handleLeaveEvent = async (eventId: string) => {
+    setLeavingEventId(eventId);
+
+    try {
+      const response = await fetch(`/api/events/${eventId}/join`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) return;
+
+      setJoinedEvents((current) =>
+        current.filter((event) => event.id !== eventId)
+      );
+      setConfirmingLeaveEventId(null);
+    } finally {
+      setLeavingEventId(null);
+    }
+  };
+
+  const confirmingLeaveEvent = joinedEvents.find(
+    (event) => event.id === confirmingLeaveEventId
+  );
 
   if (isLoading) {
     return (
@@ -479,18 +505,30 @@ export default function ProfilePage() {
               <div className="mt-3 space-y-2">
                 {joinedEvents.length > 0 ? (
                   joinedEvents.map((event) => (
-                    <Link
+                    <div
                       key={event.id}
-                      href={`/Event/${event.id}`}
-                      className="block rounded-xl border border-gray-100 p-3 text-left hover:bg-gray-50"
+                      className="flex items-center gap-3 rounded-xl border border-gray-100 p-3"
                     >
-                      <p className="text-sm font-semibold text-gray-900">
-                        {event.title}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {event.location}
-                      </p>
-                    </Link>
+                      <Link href={`/Event/${event.id}`} className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {event.title}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {event.location}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-400">
+                          {event.attendeeCount} people joined
+                        </p>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingLeaveEventId(event.id)}
+                        disabled={leavingEventId === event.id}
+                        className="shrink-0 rounded-full border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-500 disabled:opacity-60"
+                      >
+                        {leavingEventId === event.id ? "Leaving..." : "Leave Event"}
+                      </button>
+                    </div>
                   ))
                 ) : (
                   <p className="rounded-xl bg-gray-50 p-3 text-sm text-gray-400">
@@ -555,6 +593,43 @@ export default function ProfilePage() {
               onCancel={() => setIsSettingsOpen(false)}
               onSave={handleSaveProfile}
             />
+          </div>
+        </div>
+      )}
+
+      {confirmingLeaveEvent && (
+        <div
+          className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/40 px-6"
+          onClick={() => {
+            if (!leavingEventId) setConfirmingLeaveEventId(null);
+          }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className="text-base font-bold text-gray-900">Leave this event?</h3>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">
+              You will be removed from this event and attendees list.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmingLeaveEventId(null)}
+                disabled={leavingEventId === confirmingLeaveEvent.id}
+                className="flex-1 rounded-full border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleLeaveEvent(confirmingLeaveEvent.id)}
+                disabled={leavingEventId === confirmingLeaveEvent.id}
+                className="flex-1 rounded-full bg-rose-500 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {leavingEventId === confirmingLeaveEvent.id ? "Leaving..." : "Leave Event"}
+              </button>
+            </div>
           </div>
         </div>
       )}

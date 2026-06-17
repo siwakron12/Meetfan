@@ -1,13 +1,7 @@
 "use client";
 
-
-
 import { useState } from "react";
 import { ChevronDown, ChevronUp, MapPin, Users } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Mock Data (ตัวทดลอง)
-// ---------------------------------------------------------------------------
 
 interface EventItem {
   id: string;
@@ -19,80 +13,28 @@ interface EventItem {
   image: string;
   lat: number;
   lng: number;
-  distance?: string; // เช่น "1.2 km away"
- 
+  distance?: string;
 }
 
-const MOCK_EVENTS: EventItem[] = [
-  {
-    id: "evt-001",
-    title: "One Piece Pop-up Cafe in Thailand",
-    category: "นิทรรศการ / งานศิลปะ / งานฝีมือ",
-    location: "ไอคอนสยาม - ICONSIAM",
-    date: "วันนี้ - ส. 31 ต.ค. 2569",
-    attendees: 18,
-    image: "/ImgEvent/one_piece.jpg",
-    lat: 13.726694,
-    lng: 100.510498,
-    distance: "1.2 km",
-    
-  },
-  {
-    id: "evt-002",
-    title: "One Piece Pop-up Cafe in Thailand",
-    category: "นิทรรศการ / งานศิลปะ / งานฝีมือ",
-    location: "ไอคอนสยาม - ICONSIAM",
-    date: "วันนี้ - ส. 31 ต.ค. 2569",
-    attendees: 18,
-    image: "/ImgEvent/one_piece.jpg",
-    lat: 13.726694,
-    lng: 100.510498,
-    distance: "1.2 km",
-    
-  },
-  {
-    id: "evt-003",
-    title: "One Piece Pop-up Cafe in Thailand",
-    category: "นิทรรศการ / งานศิลปะ / งานฝีมือ",
-    location: "ไอคอนสยาม - ICONSIAM",
-    date: "วันนี้ - ส. 31 ต.ค. 2569",
-    attendees: 18,
-    image: "/ImgEvent/one_piece.jpg",
-    lat: 13.726694,
-    lng: 100.510498,
-    distance: "1.2 km",
-    
-  },
- 
-];
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
 interface NearEventProps {
+  events: EventItem[];
   onJoinEvent?: (eventId: string) => void;
 }
 
-export default function NearEvent({ onJoinEvent }: NearEventProps) {
+export default function NearEvent({ events, onJoinEvent }: NearEventProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
     <div className="pointer-events-none absolute bottom-3 left-0 right-0 z-[400] flex justify-center px-3">
       <div className="pointer-events-auto w-full max-w-2xl rounded-2xl bg-white/95 shadow-lg backdrop-blur-sm">
-        {/* Header: title + toggle */}
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           className="flex w-full items-center justify-between px-4 py-3"
         >
-          <span className="text-sm font-semibold text-gray-900">
-            กิจกรรมใกล้คุณ
-          </span>
+          <span className="text-sm font-semibold text-gray-900">Events near you</span>
           <div className="flex items-center gap-1">
-            <span className="text-xs font-medium text-rose-500">
-              ดูทั้งหมด
-            </span>
+            <span className="text-xs font-medium text-rose-500">View all</span>
             {isOpen ? (
               <ChevronDown size={16} className="text-gray-400" />
             ) : (
@@ -101,59 +43,56 @@ export default function NearEvent({ onJoinEvent }: NearEventProps) {
           </div>
         </button>
 
-        {/* Card list (collapsible) */}
         {isOpen && (
           <div className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-hide">
-            {MOCK_EVENTS.map((ev) => (
+            {events.map((event) => (
               <div
-                key={ev.id}
-                className="flex w-44 p-1 flex-shrink-0 flex-col overflow-hidden rounded-xl border border-gray-100 shadow-sm "
+                key={event.id}
+                className="flex w-44 flex-shrink-0 flex-col overflow-hidden rounded-xl border border-gray-100 p-1 shadow-sm"
               >
-                {/* Image + badge */}
-                <div className="relative h-24 w-full">
+                <div className="relative h-24 w-full bg-rose-50">
                   <img
-                    src={ev.image}
-                    alt={ev.title}
-                    className="h-full w-full object-contain"
+                    src={event.image}
+                    alt={event.title}
+                    className="h-full w-full object-cover"
+                    onError={(error) => {
+                      error.currentTarget.style.display = "none";
+                    }}
                   />
-              
-                    <span className="absolute left-1 top-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-semibold text-white">
-                      {ev.distance}
-                    </span>
-               
+                  <span className="absolute left-1 top-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    {event.distance ?? "Nearby"}
+                  </span>
                 </div>
 
-                {/* Info */}
-                <div className="flex flex-col gap-1 p-2.5">
+                <div className="flex flex-1 flex-col gap-1 p-2.5">
                   <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-gray-900">
-                    {ev.title}
+                    {event.title}
                   </h3>
 
                   <div className="flex items-center gap-1 text-[11px] text-gray-500">
                     <Users size={12} className="shrink-0" />
-                    <span className="truncate">
-                      { `${ev.attendees} people joined`}
-                    </span>
+                    <span className="truncate">{event.attendees} people joined</span>
                   </div>
 
                   <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <MapPin size={12} className="shrink-0" />
-                    <span className="truncate">{ev.location}</span>
+                    <span className="truncate">{event.location}</span>
                   </div>
-                  <div className="flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() => onJoinEvent?.(ev.id)}
-                        className="mt-2 w-fit rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white hover:bg-rose-600"
-                      >
-                      เข้าร่วมกิจกรรม
-                    </button>
-                  </div>
-                   
+
+                  <button
+                    type="button"
+                    onClick={() => onJoinEvent?.(event.id)}
+                    className="mt-auto self-center rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white hover:bg-rose-600"
+                  >
+                    Join event
+                  </button>
                 </div>
-               
               </div>
             ))}
+
+            {events.length === 0 && (
+              <p className="px-1 pb-1 text-xs text-gray-400">Loading nearby events...</p>
+            )}
           </div>
         )}
       </div>

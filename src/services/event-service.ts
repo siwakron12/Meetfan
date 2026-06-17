@@ -1,68 +1,80 @@
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { findCsvEvent, loadCsvEvents, type CsvEvent } from "@/services/event-data";
 
-const eventSelect = {
-  id: true,
-  title: true,
-  description: true,
-  category: true,
-  imageUrl: true,
-  location: true,
-  latitude: true,
-  longitude: true,
-  eventDate: true,
-  createdAt: true,
-  participants: {
-    select: { userId: true },
-  },
-} satisfies Prisma.EventSelect;
+async function getParticipantCounts() {
+  try {
+    const counts = await prisma.eventParticipant.groupBy({
+      by: ["eventId"],
+      _count: { eventId: true },
+    });
+
+    return new Map(
+      counts.map((count) => [count.eventId, count._count.eventId])
+    );
+  } catch {
+    return new Map<string, number>();
+  }
+}
+
+async function getJoinedEventIds(userId?: string) {
+  if (!userId) return new Set<string>();
+
+  try {
+    const participants = await prisma.eventParticipant.findMany({
+      where: { userId },
+      select: { eventId: true },
+    });
+
+    return new Set(participants.map((participant) => participant.eventId));
+  } catch {
+    return new Set<string>();
+  }
+}
 
 function serializeEvent(
-  event: Prisma.EventGetPayload<{ select: typeof eventSelect }>,
-  userId?: string
+  event: CsvEvent,
+  attendeeCount: number,
+  joinedEventIds: Set<string>
 ) {
   return {
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    category: event.category,
-    imageUrl: event.imageUrl,
-    location: event.location,
-    latitude: event.latitude,
-    longitude: event.longitude,
-    eventDate: event.eventDate.toISOString(),
-    createdAt: event.createdAt.toISOString(),
-    attendeeCount: event.participants.length,
-    joined: userId
-      ? event.participants.some((participant) => participant.userId === userId)
-      : false,
+    ...event,
+    attendeeCount,
+    joined: joinedEventIds.has(event.id),
   };
 }
 
 export async function listEvents(userId?: string) {
-  const events = await prisma.event.findMany({
-    orderBy: { eventDate: "asc" },
-    select: eventSelect,
-  });
+  const [events, counts, joinedEventIds] = await Promise.all([
+    loadCsvEvents(),
+    getParticipantCounts(),
+    getJoinedEventIds(userId),
+  ]);
 
-  return events.map((event) => serializeEvent(event, userId));
+  return events.map((event) =>
+    serializeEvent(event, counts.get(event.id) ?? 0, joinedEventIds)
+  );
 }
 
 export async function getEvent(eventId: string, userId?: string) {
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-    select: eventSelect,
-  });
+  const [event, counts, joinedEventIds] = await Promise.all([
+    findCsvEvent(eventId),
+    getParticipantCounts(),
+    getJoinedEventIds(userId),
+  ]);
 
-  return event ? serializeEvent(event, userId) : null;
+  return event
+    ? serializeEvent(event, counts.get(event.id) ?? 0, joinedEventIds)
+    : null;
 }
 
 export async function joinEvent(userId: string, eventId: string) {
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  const event = await findCsvEvent(eventId);
+
   if (!event) {
     throw new Error("EVENT_NOT_FOUND");
   }
 
+  await prisma.$executeRawUnsafe("PRAGMA foreign_keys = OFF");
   await prisma.eventParticipant.upsert({
     where: { userId_eventId: { userId, eventId } },
     update: {},
@@ -73,26 +85,41 @@ export async function joinEvent(userId: string, eventId: string) {
 }
 
 export async function leaveEvent(userId: string, eventId: string) {
+  const event = await findCsvEvent(eventId);
+
+  if (!event) {
+    throw new Error("EVENT_NOT_FOUND");
+  }
+
   await prisma.eventParticipant.deleteMany({
     where: { userId, eventId },
   });
 
-  return { joined: false };
+  return { success: true };
 }
 
 export async function listJoinedEvents(userId: string) {
-  const participants = await prisma.eventParticipant.findMany({
-    where: { userId },
-    orderBy: { joinedAt: "desc" },
-    include: {
-      event: {
-        select: eventSelect,
-      },
-    },
-  });
+  const [events, participants, counts] = await Promise.all([
+    loadCsvEvents(),
+    prisma.eventParticipant.findMany({
+      where: { userId },
+      orderBy: { joinedAt: "desc" },
+      select: { eventId: true, joinedAt: true },
+    }),
+    getParticipantCounts(),
+  ]);
+  const eventById = new Map(events.map((event) => [event.id, event]));
+  const joinedEventIds = new Set(participants.map((participant) => participant.eventId));
 
-  return participants.map((participant) => ({
-    ...serializeEvent(participant.event, userId),
-    joinedAt: participant.joinedAt.toISOString(),
-  }));
+  return participants
+    .map((participant) => {
+      const event = eventById.get(participant.eventId);
+      if (!event) return null;
+
+      return {
+        ...serializeEvent(event, counts.get(event.id) ?? 0, joinedEventIds),
+        joinedAt: participant.joinedAt.toISOString(),
+      };
+    })
+    .filter((event): event is NonNullable<typeof event> => Boolean(event));
 }

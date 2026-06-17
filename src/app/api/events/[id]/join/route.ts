@@ -31,8 +31,9 @@ export async function DELETE(
 
     return ok(result);
   } catch (error) {
-    if (error instanceof Error && error.message === "UNAUTHENTICATED") {
-      return fail("Unauthorized", 401);
+    if (error instanceof Error) {
+      if (error.message === "UNAUTHENTICATED") return fail("Unauthorized", 401);
+      if (error.message === "EVENT_NOT_FOUND") return fail("Event not found", 404);
     }
 
     return fail("Could not leave event", 500);
