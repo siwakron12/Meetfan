@@ -1,6 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { findCsvEvent, loadCsvEvents, type CsvEvent } from "@/services/event-data";
+export async function getEventParticipants(eventId: string) {
+  const participants = await prisma.eventParticipant.findMany({
+    where: { eventId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          occupation: true,
+          district: true,
+        },
+      },
+    },
+    orderBy: { joinedAt: "asc" },
+  });
 
+  return participants.map((p) => ({
+    ...p.user,
+    joinedAt: p.joinedAt,
+  }));
+}
 async function getParticipantCounts() {
   try {
     const counts = await prisma.eventParticipant.groupBy({
