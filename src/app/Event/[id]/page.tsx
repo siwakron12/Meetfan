@@ -9,8 +9,6 @@ import {
   Users,
   Check,
   Heart,
-  X,
-  Sparkles,
 } from "lucide-react";
 import MatchModal from "./MatchModal";
 import { useAuth } from "@/components/AuthProvider";
@@ -18,11 +16,35 @@ import { useAuth } from "@/components/AuthProvider";
 interface EventParticipant {
   id: string;
   name: string;
+  age: number | null;
   occupation: string | null;
   district: string | null;
+  interests: string[];
+  goals: string[];
   joinedAt: string;
   avatar: string;
   isMe: boolean;
+}
+
+interface EventDetails {
+  title: string;
+  category: string;
+  imageUrl: string;
+  date: string;
+  time: string;
+  location: string;
+}
+
+interface ParticipantPayload {
+  id: string;
+  name: string;
+  age: number | null;
+  occupation: string | null;
+  district: string | null;
+  interests: string[];
+  goals: string[];
+  joinedAt: string;
+  avatar?: string;
 }
 
 function formatJoinedAt(joinedAt: string) {
@@ -32,92 +54,64 @@ function formatJoinedAt(joinedAt: string) {
   }).format(new Date(joinedAt));
 }
 
-const EVENT_DETAIL = {
-  id: "evt-001",
-  title: "One Piece Pop-up Cafe in Thailand",
-  category: "นิทรรศการ / งานศิลปะ / งานฝีมือ",
-  dateRange: "12 มีนาคม - 31 ตุลาคม 2569",
-  location: "Attraction Hall ชั้น 6, ICONSIAM",
-  image: "/ImgEvent/one_piece.jpg",
-};
-
-export default function EventAttendees({ onClose }: any) {
+export default function EventAttendees({ onClose }: { onClose?: () => void }) {
   const { user, isLoading: isAuthLoading } = useAuth();
-  const params = useParams();
-  const eventId = params.id as string;
-  const [event, setEvent] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const params = useParams<{ id: string }>();
+  const eventId = params.id;
+  const [event, setEvent] = useState<EventDetails | null>(null);
   const router = useRouter();
   const [participants, setParticipants] = useState<EventParticipant[]>([]);
   const [isLoadingParticipants, setIsLoadingParticipants] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [showMatch, setShowMatch] = useState(false);
+  // แสดง grid ผู้เข้าร่วมก็ต่อเมื่อเคยกดปุ่มจับคู่แล้วเท่านั้น
+  const [hasOpenedMatch, setHasOpenedMatch] = useState(false);
+
   useEffect(() => {
     if (!eventId) return;
-
     const fetchEvent = async () => {
       try {
         const res = await fetch(`/api/events/${eventId}`);
         const data = await res.json();
-
-        console.log("EVENT:", data);
-
-        setEvent(data.event);
+        setEvent(data.event ?? null);
       } catch (err) {
         console.error("FETCH ERROR:", err);
-      } finally {
-        setLoading(false);
       }
     };
-
     fetchEvent();
   }, [eventId]);
+
   useEffect(() => {
     let isActive = true;
-
     async function loadParticipants() {
       try {
         setIsLoadingParticipants(true);
         setLoadError("");
-
         const response = await fetch(`/api/events/${eventId}/participants`, {
           cache: "no-store",
         });
         const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "ไม่สามารถโหลดผู้เข้าร่วมได้");
-        }
-
+        if (!response.ok) throw new Error(data.message || "ไม่สามารถโหลดผู้เข้าร่วมได้");
         if (isActive) {
           setParticipants(
-            (data.participants ?? []).map((participant: any) => ({
+            ((data.participants ?? []) as ParticipantPayload[]).map((participant) => ({
               ...participant,
-              avatar: `https://i.pravatar.cc/150?u=${participant.id}`,
+              avatar:
+                participant.avatar || `https://i.pravatar.cc/150?u=${participant.id}`,
               isMe: Boolean(user?.id && participant.id === user.id),
-            })),
+            }))
           );
         }
       } catch (error) {
         if (isActive) {
-          setLoadError(
-            error instanceof Error
-              ? error.message
-              : "ไม่สามารถโหลดผู้เข้าร่วมได้",
-          );
+          setLoadError(error instanceof Error ? error.message : "ไม่สามารถโหลดผู้เข้าร่วมได้");
         }
       } finally {
-        if (isActive) {
-          setIsLoadingParticipants(false);
-        }
+        if (isActive) setIsLoadingParticipants(false);
       }
     }
-
     void loadParticipants();
-
-    return () => {
-      isActive = false;
-    };
+    return () => { isActive = false; };
   }, [eventId, user?.id]);
 
   const handleBack = () => {
@@ -125,9 +119,14 @@ export default function EventAttendees({ onClose }: any) {
     else router.back();
   };
 
+  const handleOpenMatch = () => {
+    setHasOpenedMatch(true);
+    setShowMatch(true);
+  };
+
   const others = useMemo(
-    () => participants.filter((participant) => !participant.isMe),
-    [participants],
+    () => participants.filter((p) => !p.isMe),
+    [participants]
   );
 
   if (isAuthLoading || isLoadingParticipants) {
@@ -137,20 +136,12 @@ export default function EventAttendees({ onClose }: any) {
       </div>
     );
   }
-  console.log(showMatch);
+
   if (loadError) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gray-50 px-6 text-center">
-        <p className="text-sm font-semibold text-gray-900">
-          โหลดข้อมูลไม่สำเร็จ
-        </p>
+        <p className="text-sm font-semibold text-gray-900">โหลดข้อมูลไม่สำเร็จ</p>
         <p className="text-sm text-gray-500">{loadError}</p>
-        <button
-          onClick={() => setShowMatch(false)}
-          className="rounded-full bg-rose-500 px-4 py-2 text-sm font-semibold text-white"
-        >
-          ลองใหม่
-        </button>
       </div>
     );
   }
@@ -158,16 +149,14 @@ export default function EventAttendees({ onClose }: any) {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Hero */}
-      <div className="relative h-122 w-fit lg:w-full mx-auto ">
+      <div className="relative h-122 w-fit lg:w-full mx-auto">
         <img
           src={event?.imageUrl}
           alt={event?.title}
           className="h-full w-full object-cover"
         />
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.6),rgba(0,0,0,0.1),transparent)]" />
 
-        {/* Back button */}
         <button
           onClick={handleBack}
           className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow"
@@ -175,18 +164,16 @@ export default function EventAttendees({ onClose }: any) {
           <ArrowLeft size={18} className="text-gray-700" />
         </button>
 
-        {/* Joined badge */}
         <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 shadow">
           <Check size={13} className="text-white" />
           <span className="text-xs font-semibold text-white">เข้าร่วมแล้ว</span>
         </div>
 
-        {/* Title on image */}
         <div className="absolute bottom-4 text-white left-4 right-4">
-          <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold  backdrop-blur-sm">
+          <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold backdrop-blur-sm">
             {event?.category}
           </span>
-          <h1 className="mt-1.5 text-lg font-bold leading-snug  drop-shadow">
+          <h1 className="mt-1.5 text-lg font-bold leading-snug drop-shadow">
             {event?.title}
           </h1>
         </div>
@@ -214,7 +201,7 @@ export default function EventAttendees({ onClose }: any) {
       {/* Match CTA */}
       <div className="mx-4 mt-4">
         <button
-          onClick={() => setShowMatch(true)}
+          onClick={handleOpenMatch}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-500 py-4 shadow-md shadow-rose-200 transition-transform active:scale-[0.98]"
         >
           <Heart size={18} className="fill-white text-white" />
@@ -225,61 +212,70 @@ export default function EventAttendees({ onClose }: any) {
         </button>
       </div>
 
-      {/* Attendees grid */}
-      <div className="mx-4 mt-5">
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">
-          ผู้เข้าร่วมกิจกรรม
-        </h2>
-
-        <div className="grid grid-cols-4 gap-3">
-          {participants.map((participant) => (
-            <div
-              key={participant.id}
-              className="flex flex-col items-center gap-1.5 text-center"
-            >
-              <div className="relative">
-                <img
-                  src={participant.avatar}
-                  alt={participant.name}
-                  className={`h-16 w-16 rounded-full border-2 object-cover ${
-                    participant.isMe ? "border-rose-400" : "border-gray-100"
-                  }`}
-                />
-                {participant.isMe && (
-                  <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 ring-2 ring-white">
-                    <Check size={10} className="text-white" />
+      {/* Participants grid — แสดงหลังจากเคยกดปุ่มจับคู่แล้วเท่านั้น */}
+      {hasOpenedMatch && (
+        <div className="mx-4 mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Users size={15} className="text-gray-400" />
+            <h2 className="text-sm font-semibold text-gray-700">ผู้เข้าร่วมกิจกรรม</h2>
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500">
+              {participants.length}
+            </span>
+          </div>
+          <div className="rounded-2xl bg-white p-4 shadow-sm">
+            <div className="grid grid-cols-4 gap-3">
+              {participants.map((participant) => (
+                <div
+                  key={participant.id}
+                  className="flex flex-col items-center gap-1.5 text-center"
+                >
+                  <div className="relative">
+                    <img
+                      src={participant.avatar}
+                      alt={participant.name}
+                      className={`h-16 w-16 rounded-full border-2 object-cover ${
+                        participant.isMe ? "border-rose-400" : "border-gray-100"
+                      }`}
+                    />
+                    {participant.isMe && (
+                      <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 ring-2 ring-white">
+                        <Check size={10} className="text-white" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <span
-                className={`text-[11px] font-semibold ${
-                  participant.isMe ? "text-rose-500" : "text-gray-600"
-                }`}
-              >
-                {participant.isMe ? "คุณ" : participant.name}
-              </span>
-
-              {participant.district && (
-                <span className="text-[10px] text-gray-400">
-                  {participant.district}
-                </span>
-              )}
-              <span className="text-[10px] text-gray-500">
-                {formatJoinedAt(participant.joinedAt)}
-              </span>
+                  <span
+                    className={`text-[11px] font-semibold ${
+                      participant.isMe ? "text-rose-500" : "text-gray-600"
+                    }`}
+                  >
+                    {participant.isMe ? "คุณ" : participant.name}
+                  </span>
+                  {participant.district && (
+                    <span className="text-[10px] text-gray-400">
+                      {participant.district}
+                    </span>
+                  )}
+                  {participant.occupation && (
+                    <span className="max-w-full truncate text-[10px] text-gray-500">
+                      {participant.occupation}
+                    </span>
+                  )}
+                  <span className="text-[10px] text-gray-500">
+                    {formatJoinedAt(participant.joinedAt)}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom padding */}
+      <div className="h-8" />
 
       {/* Match Modal */}
       {showMatch && (
-        <MatchModal
-          attendees={participants}
-          onClose={() => setShowMatch(false)}
-        />
+        <MatchModal eventId={eventId} onClose={() => setShowMatch(false)} />
       )}
     </div>
   );

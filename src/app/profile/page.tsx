@@ -4,6 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import LoginModal from "../(Login)/LoginModal";
 import { useAuth } from "@/components/AuthProvider";
+import {
+  GOAL_OPTIONS,
+  INTEREST_GROUPS,
+  OCCUPATION_GROUPS,
+} from "@/services/profile-options";
 
 interface JoinedEvent {
   id: string;
@@ -23,26 +28,6 @@ interface ProfileInfo {
 }
 
 const NOT_SET = "Not set";
-const INTEREST_OPTIONS = [
-  "AI",
-  "Technology",
-  "Startup",
-  "Business",
-  "Design",
-  "Music",
-  "Gaming",
-  "Sports",
-  "Education",
-  "Volunteer",
-];
-const GOAL_OPTIONS = [
-  "Networking",
-  "Learning",
-  "Career Growth",
-  "Startup Opportunities",
-  "Friends",
-  "Volunteer Work",
-];
 const EMPTY_PROFILE: ProfileInfo = {
   age: null,
   district: null,
@@ -52,9 +37,6 @@ const EMPTY_PROFILE: ProfileInfo = {
 };
 
 function displayProfileLabel(value: string) {
-  if (value === "Career Growth") return "Shared Interests";
-  if (value === "Startup Opportunities") return "Similar Community";
-  if (value === "Volunteer Work") return "Community Activities";
   return value;
 }
 
@@ -118,6 +100,10 @@ function ProfileSettingsForm({
     });
   };
 
+  const selectOccupation = (occupation: string) => {
+    setForm((current) => ({ ...current, occupation }));
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
@@ -151,24 +137,33 @@ function ProfileSettingsForm({
         <p className="mt-1 text-xs font-medium text-gray-500">
           Meet people who enjoy the same things.
         </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {INTEREST_OPTIONS.map((interest) => {
-            const selected = form.interests.includes(interest);
-            return (
-              <button
-                key={interest}
-                type="button"
-                onClick={() => toggleSelection("interests", interest)}
-                className={`rounded-full border px-4 py-2 text-sm font-bold ${
-                  selected
-                    ? "border-rose-500 bg-rose-500 text-white"
-                    : "border-white bg-white text-gray-700"
-                }`}
-              >
-                {interest}
-              </button>
-            );
-          })}
+        <div className="mt-3 space-y-3">
+          {INTEREST_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="text-xs font-bold uppercase tracking-wide text-rose-400">
+                {group.label}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {group.options.map((interest) => {
+                  const selected = form.interests.includes(interest);
+                  return (
+                    <button
+                      key={interest}
+                      type="button"
+                      onClick={() => toggleSelection("interests", interest)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold sm:text-sm ${
+                        selected
+                          ? "border-rose-500 bg-rose-500 text-white"
+                          : "border-white bg-white text-gray-700"
+                      }`}
+                    >
+                      {interest}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -204,22 +199,38 @@ function ProfileSettingsForm({
               className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
             />
           </label>
-          <label className="block">
-            <span className="text-xs font-medium text-gray-500">
-              Occupation
-            </span>
-            <input
-              type="text"
-              value={form.occupation}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  occupation: event.target.value,
-                }))
-              }
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
-            />
-          </label>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900">Occupation</h3>
+        <div className="mt-3 space-y-3">
+          {OCCUPATION_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                {group.label}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {group.options.map((occupation) => {
+                  const selected = form.occupation === occupation;
+                  return (
+                    <button
+                      key={occupation}
+                      type="button"
+                      onClick={() => selectOccupation(occupation)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold sm:text-sm ${
+                        selected
+                          ? "border-rose-500 bg-rose-500 text-white"
+                          : "border-gray-200 bg-white text-gray-600"
+                      }`}
+                    >
+                      {occupation}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -286,6 +297,17 @@ export default function ProfilePage() {
   }, [profileInfo]);
 
   const completion = Math.round(((5 - missingFields.length) / 5) * 100);
+  const matchingFactors = [
+    { label: "Interests", complete: profileInfo.interests.length > 0 },
+    { label: "Goals", complete: profileInfo.goals.length > 0 },
+    { label: "Occupation", complete: Boolean(profileInfo.occupation) },
+    { label: "District", complete: Boolean(profileInfo.district) },
+  ];
+  const matchingStrength = Math.round(
+    (matchingFactors.filter((factor) => factor.complete).length /
+      matchingFactors.length) *
+      100
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -468,23 +490,50 @@ export default function ProfilePage() {
 
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
-                Interest Profile
+                Matching Profile
               </h2>
               <div className="mt-3 rounded-xl border border-gray-100 p-4">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <div className="sm:col-span-2">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="rounded-xl bg-rose-50 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-medium text-gray-500">
+                          Profile Strength
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                          This information is used to generate more accurate event and people recommendations.
+                        </p>
+                      </div>
+                      <span className="text-2xl font-extrabold text-rose-500">
+                        {matchingStrength}%
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {matchingFactors.map((factor) => (
+                        <span
+                          key={factor.label}
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            factor.complete
+                              ? "bg-white text-emerald-600"
+                              : "bg-white/70 text-gray-400"
+                          }`}
+                        >
+                          {factor.complete ? "✓" : "○"} {factor.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
                     <p className="text-xs font-medium text-gray-400">
-                      Shared Interests
+                      Interests
                     </p>
                     <ChipList values={profileInfo.interests} prominent />
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-400">
-                      Similar Community
+                      Goals
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-gray-900">
-                      {joinedEvents.length} joined events
-                    </p>
+                    <ChipList values={profileInfo.goals} />
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-400">

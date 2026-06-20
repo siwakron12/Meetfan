@@ -1,0 +1,112 @@
+[
+  {
+    "id": "mock-arin",
+    "firstName": "Arin",
+    "lastName": "Srisuk",
+    "age": 24,
+    "district": "Pathum Wan",
+    "occupation": "Startup Founder",
+    "interests": ["AI", "Startup", "Hackathon", "Product Design"],
+    "goals": ["Find Hackathon Team", "Networking", "Find Startup Co-Founder"],
+    "avatar": "https://i.pravatar.cc/150?img=11"
+  },
+  {
+    "id": "mock-tan",
+    "firstName": "Tan",
+    "lastName": "Wongsa",
+    "age": 27,
+    "district": "Thonglor",
+    "occupation": "Software Engineer",
+    "interests": ["Software Development", "Machine Learning", "AI", "Hackathon"],
+    "goals": ["Find Hackathon Team", "Learn New Skills", "Collaboration"],
+    "avatar": "https://i.pravatar.cc/150?img=12"
+  },
+  {
+    "id": "mock-mild",
+    "firstName": "Mild",
+    "lastName": "Kittipong",
+    "age": 23,
+    "district": "Ari",
+    "occupation": "UX/UI Designer",
+    "interests": ["UX/UI", "Product Design", "Digital Art", "Creative Workshop"],
+    "goals": ["Collaboration", "Networking", "Career Opportunities"],
+    "avatar": "https://i.pravatar.cc/150?img=13"
+  },
+  {
+    "id": "mock-beam",
+    "firstName": "Beam",
+    "lastName": "Chaiyawat",
+    "age": 25,
+    "district": "Sathorn",
+    "occupation": "Marketing",
+    "interests": ["Marketing", "Business", "K-Pop", "Live Concert"],
+    "goals": ["Networking", "Find New Friends", "Career Opportunities"],
+    "avatar": "https://i.pravatar.cc/150?img=14"
+  },
+  {
+    "id": "mock-korn",
+    "firstName": "Korn",
+    "lastName": "Lee",
+    "age": 29,
+    "district": "Bang Na",
+    "occupation": "Data Analyst",
+    "interests": ["Machine Learning", "AI", "Business", "Software Development"],
+    "goals": ["Learn New Skills", "Collaboration", "Career Opportunities"],
+    "avatar": "https://i.pravatar.cc/150?img=15"
+  },
+  {
+    "id": "mock-ploy",
+    "firstName": "Ploy",
+    "lastName": "Chaturon",
+    "age": 26,
+    "district": "Ratchathewi",
+    "occupation": "Photographer",
+    "interests": ["Photography", "Exhibition", "Museum", "Fashion"],
+    "goals": ["Find Event Buddy", "Join Community", "Find New Friends"],
+    "avatar": "https://i.pravatar.cc/150?img=16"
+  },
+  {
+    "id": "mock-mint",
+    "firstName": "Mint",
+    "lastName": "Nakamura",
+    "age": 22,
+    "district": "Lat Phrao",
+    "occupation": "Student",
+    "interests": ["K-Pop", "Indie Music", "Photography", "Fashion"],
+    "goals": ["Find New Friends", "Find Event Buddy", "Join Community"],
+    "avatar": "https://i.pravatar.cc/150?img=17"
+  },
+  {
+    "id": "mock-ben",
+    "firstName": "Ben",
+    "lastName": "Anderson",
+    "age": 30,
+    "district": "Asok",
+    "occupation": "Entrepreneur",
+    "interests": ["Startup", "Business", "Marketing", "Entrepreneurship"],
+    "goals": ["Find Startup Co-Founder", "Networking", "Collaboration"],
+    "avatar": "https://i.pravatar.cc/150?img=18"
+  },
+  {
+    "id": "mock-nene",
+    "firstName": "Nene",
+    "lastName": "Phanich",
+    "age": 28,
+    "district": "Lumphini",
+    "occupation": "Freelancer",
+    "interests": ["Running", "Yoga", "Wellness", "Fitness Community"],
+    "goals": ["Find Event Buddy", "Join Community", "Find New Friends"],
+    "avatar": "https://i.pravatar.cc/150?img=19"
+  },
+  {
+    "id": "mock-first",
+    "firstName": "First",
+    "lastName": "Morgan",
+    "age": 24,
+    "district": "Phaya Thai",
+    "occupation": "Computer Science Student",
+    "interests": ["Hackathon", "AI", "Software Development", "UX/UI"],
+    "goals": ["Find Hackathon Team", "Learn New Skills", "Networking"],
+    "avatar": "https://i.pravatar.cc/150?img=20"
+  }
+]

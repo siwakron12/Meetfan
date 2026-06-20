@@ -27,13 +27,9 @@ export default function LoginModal({
   return (
     <div
       className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
     >
-      <div
-        className="w-full max-w-md rounded-lg bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b px-6 py-4">
+      <div className="w-full max-w-md rounded-lg bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b py-4 pl-6 pr-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-rose-500">
               Meetfan
@@ -45,7 +41,7 @@ export default function LoginModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-2xl leading-none text-gray-400 hover:text-gray-600"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-3xl leading-none text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
             aria-label="ปิด"
           >
             ×

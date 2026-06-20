@@ -68,7 +68,7 @@ function toEventItem(event: ApiEvent): EventItem {
     location: event.location,
     date: formatDate(event) || new Date(event.eventDate).toLocaleDateString("th-TH"),
     attendees: event.attendeeCount,
-    image: event.poster_png || event.posterPng || event.imageUrl,
+    image:  event.imageUrl,
     lat: event.latitude,
     lng: event.longitude,
   };
@@ -128,7 +128,7 @@ export default function EventMapPage() {
     async function loadEvents() {
       const response = await fetch("/api/events", { cache: "no-store" });
       const data = await response.json().catch(() => ({}));
-
+      console.log("API EVENTS:", data);
       if (isActive && Array.isArray(data.events)) {
         setEvents(data.events.map(toEventItem));
       }

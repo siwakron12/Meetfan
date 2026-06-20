@@ -1,26 +1,9 @@
 import { prisma } from "@/lib/prisma";
-
-export const INTEREST_OPTIONS = [
-  "AI",
-  "Technology",
-  "Startup",
-  "Business",
-  "Design",
-  "Music",
-  "Gaming",
-  "Sports",
-  "Education",
-  "Volunteer",
-] as const;
-
-export const GOAL_OPTIONS = [
-  "Networking",
-  "Learning",
-  "Career Growth",
-  "Startup Opportunities",
-  "Friends",
-  "Volunteer Work",
-] as const;
+import {
+  GOAL_OPTIONS,
+  INTEREST_OPTIONS,
+  OCCUPATION_OPTIONS,
+} from "@/services/profile-options";
 
 export interface ProfilePayload {
   age: number | null;
@@ -48,6 +31,15 @@ function cleanString(value: unknown) {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function cleanOccupation(value: unknown) {
+  const occupation = cleanString(value);
+  if (!occupation) return null;
+
+  return (OCCUPATION_OPTIONS as readonly string[]).includes(occupation)
+    ? occupation
+    : null;
 }
 
 function cleanAge(value: unknown) {
@@ -118,7 +110,7 @@ export async function updateUserProfile(userId: string, input: unknown) {
   const profile = {
     age: cleanAge(body.age),
     district: cleanString(body.district),
-    occupation: cleanString(body.occupation),
+    occupation: cleanOccupation(body.occupation),
     interests: cleanSelection(body.interests, INTEREST_OPTIONS),
     goals: cleanSelection(body.goals, GOAL_OPTIONS),
   };

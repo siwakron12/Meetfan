@@ -209,7 +209,7 @@ function toCsvEvent(
 let eventCache: CsvEvent[] | null = null;
 
 export async function loadCsvEvents() {
-  if (eventCache) return eventCache;
+ if (eventCache && process.env.NODE_ENV === "production") return eventCache;
 
   const fileNames = (await readdir(EVENT_DATA_DIR))
     .filter((fileName) => fileName.toLowerCase().endsWith(".csv"))

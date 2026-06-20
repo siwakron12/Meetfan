@@ -1,5 +1,20 @@
 import { prisma } from "@/lib/prisma";
 import { findCsvEvent, loadCsvEvents, type CsvEvent } from "@/services/event-data";
+import { getMockAvatar } from "@/services/mock-community";
+
+function parseList(value: string | null | undefined) {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function getEventParticipants(eventId: string) {
   const participants = await prisma.eventParticipant.findMany({
     where: { eventId },
@@ -8,8 +23,12 @@ export async function getEventParticipants(eventId: string) {
         select: {
           id: true,
           name: true,
+          email: true,
+          age: true,
           occupation: true,
           district: true,
+          interests: true,
+          goals: true,
         },
       },
     },
@@ -17,7 +36,18 @@ export async function getEventParticipants(eventId: string) {
   });
 
   return participants.map((p) => ({
-    ...p.user,
+    id: p.user.id,
+    name: p.user.name,
+    age: p.user.age,
+    occupation: p.user.occupation,
+    district: p.user.district,
+    interests: parseList(p.user.interests),
+    goals: parseList(p.user.goals),
+    avatar: getMockAvatar({
+      id: p.user.id,
+      email: p.user.email,
+      name: p.user.name,
+    }),
     joinedAt: p.joinedAt,
   }));
 }

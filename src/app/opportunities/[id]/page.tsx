@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -8,7 +9,6 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   Check,
-  ImageIcon,
   MapPin,
   Users,
   X,
@@ -16,10 +16,43 @@ import {
 import { useAuth } from "@/components/AuthProvider";
 import {
   EMPTY_OPPORTUNITY_PROFILE,
+  Opportunity,
   ProfileInfo,
   getMatchDetails,
   getOpportunityById,
+  hasRealOpportunityImage,
 } from "@/services/opportunity-service";
+
+function OpportunityImage({
+  opportunity,
+  sizes,
+}: {
+  opportunity: Opportunity;
+  sizes: string;
+}) {
+  if (!hasRealOpportunityImage(opportunity)) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-rose-50 text-center">
+        <div>
+          <CalendarDays size={28} className="mx-auto text-rose-300" />
+          <p className="mt-1 text-xs font-medium text-gray-500">
+            No Event Image
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={opportunity.imageUrl}
+      alt={opportunity.title}
+      fill
+      sizes={sizes}
+      className="object-cover"
+    />
+  );
+}
 
 export default function OpportunityDetailPage() {
   const params = useParams<{ id: string }>();
@@ -140,9 +173,11 @@ export default function OpportunityDetailPage() {
       </Link>
 
       <section className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-        {/* Mock event banner image */}
-        <div className="relative flex h-40 w-full items-center justify-center bg-gradient-to-br from-rose-200 to-orange-100 sm:h-52">
-          <ImageIcon size={36} className="text-white/80" strokeWidth={1.5} />
+        <div className="relative h-40 w-full overflow-hidden bg-rose-50 sm:h-52">
+          <OpportunityImage
+            opportunity={opportunity}
+            sizes="(min-width: 768px) 768px, 100vw"
+          />
           <span className="absolute left-4 top-4 rounded-full bg-rose-500 px-3 py-1 text-sm font-bold text-white shadow-sm">
             {match.matchScore}% ตรงกับความสนใจ
           </span>
@@ -260,8 +295,8 @@ export default function OpportunityDetailPage() {
             </div>
 
             <div className="mt-3 flex gap-3">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-rose-200 to-orange-100">
-                <ImageIcon size={20} className="text-white/80" strokeWidth={1.75} />
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-rose-50">
+                <OpportunityImage opportunity={opportunity} sizes="64px" />
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-semibold leading-snug text-gray-900">

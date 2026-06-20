@@ -12,6 +12,7 @@ export interface Opportunity {
   organizer: string;
   date: string;
   description: string;
+  imageUrl: string;
   tags: string[];
   relatedEventId?: string;
 }
@@ -22,6 +23,19 @@ export interface MatchBreakdownItem {
   points: number;
 }
 
+export interface OpportunityScoreBreakdown {
+  interests: number;
+  goals: number;
+  occupation: number;
+  total: number;
+}
+
+interface ScoredOpportunity extends Opportunity {
+  matchScore: number;
+  interestScore: number;
+  matchedTagCount: number;
+}
+
 export const EMPTY_OPPORTUNITY_PROFILE: ProfileInfo = {
   occupation: null,
   interests: [],
@@ -30,202 +44,480 @@ export const EMPTY_OPPORTUNITY_PROFILE: ProfileInfo = {
 
 export const MOCK_OPPORTUNITIES: Opportunity[] = [
   {
-    id: "opp-001",
-    title: "Bangkok Jazz Night",
-    category: "Music",
-    location: "Siam Square",
-    organizer: "Bangkok Live Music Club",
-    date: "July 20, 2026",
-    description: "Meet people who enjoy live jazz, small venues, and relaxed conversations after the show.",
-    tags: ["music", "live-performance", "meetup", "community"],
+    id: "ev007",
+    title: "ONE BANGKOK ONE PRIDE ONE RUN 2026",
+    category: "Active & Health",
+    location: "One Bangkok Park",
+    organizer: "One Bangkok",
+    date: "7/6/2026",
+    description:
+      "A city run for people who enjoy movement, wellness, and positive community energy.",
+    imageUrl: "/ImgEvent/EV007.jpg",
+    tags: ["Running", "Wellness", "Fitness Community"],
+    relatedEventId: "active-health-1-one-bangkok-one-pride-one-run-2026",
   },
   {
-    id: "opp-002",
-    title: "AI Meetup Bangkok",
-    category: "Technology",
+    id: "ev008",
+    title: "Disney Run Thailand 2026",
+    category: "Active & Health",
+    location: "Rama VIII Bridge",
+    organizer: "Disney Thailand",
+    date: "16/7/2026",
+    description:
+      "A themed running event for people who want a fun race-day experience with friends.",
+    imageUrl: "/ImgEvent/EV008.jpg",
+    tags: ["Running"],
+    relatedEventId: "active-health-2-disney-run-thailand-2026",
+  },
+  {
+    id: "ev009",
+    title: "BYD HYROX Bangkok 2026",
+    category: "Active & Health",
+    location: "Queen Sirikit National Convention Center",
+    organizer: "hyroxthailand",
+    date: "13/8/2026-16/8/2026",
+    description:
+      "A fitness competition for people who enjoy gym training, endurance, and active communities.",
+    imageUrl: "/ImgEvent/EV009.jpg",
+    tags: ["Gym", "Fitness Community"],
+    relatedEventId: "active-health-3-byd-hyrox-bangkok-2026",
+  },
+  {
+    id: "ev010",
+    title: "Together We Ride World Bicycle Day",
+    category: "Active & Health",
+    location: "Lan Khon Mueang",
+    organizer: "Ride & Join",
+    date: "6/6/2026",
+    description:
+      "A cycling community ride through Bangkok for people who enjoy active urban events.",
+    imageUrl: "/ImgEvent/EV010.jpg",
+    tags: ["Cycling"],
+    relatedEventId: "active-health-4-together-we-ride-world-bicycle-day",
+  },
+  {
+    id: "ev011",
+    title: "Rajadamnern Muay Thai Night",
+    category: "Active & Health",
+    location: "Rajadamnern Stadium",
+    organizer: "Rajadamnern Stadium",
+    date: "everyday",
+    description:
+      "A live Muay Thai experience for people interested in wellness, sports culture, and local energy.",
+    imageUrl: "/ImgEvent/EV011.jpg",
+    tags: ["Wellness"],
+    relatedEventId:
+      "active-health-5-เข-าชมมวย-ณ-สนามเวท-มวยราชด-าเน-น-กร-งเทพ",
+  },
+  {
+    id: "ev012",
+    title: "Goat Games 2026",
+    category: "Active & Health",
+    location: "The PARQ",
+    organizer: "Stonegoat Group Co., Ltd.",
+    date: "26/6/2026-3/7/2026",
+    description:
+      "A climbing community event for people who like activities, challenges, and meeting active friends.",
+    imageUrl: "/ImgEvent/EV012.png",
+    tags: ["Activities", "Community"],
+    relatedEventId: "active-health-6-goat-games-2026",
+  },
+  {
+    id: "ev013",
+    title: "Flow House Bangkok",
+    category: "Active & Health",
+    location: "Flow House Bangkok",
+    organizer: "A-Square Sukhumvit 26",
+    date: "everyday",
+    description:
+      "A surf-style activity spot for people who enjoy wellness, movement, and social communities.",
+    imageUrl: "/ImgEvent/EV013.jpg",
+    tags: ["Wellness", "Community"],
+    relatedEventId: "active-health-7-flow-house-bangkok",
+  },
+  {
+    id: "ev014",
+    title: "Laser Game",
+    category: "Active & Health",
+    location: "Mansion 7",
+    organizer: "Yok Pok Ying",
+    date: "everyday",
+    description:
+      "A group activity for people who enjoy energetic games and fitness-minded communities.",
+    imageUrl: "/ImgEvent/EV014.png",
+    tags: ["Fitness Community", "Running"],
+    relatedEventId: "active-health-8-laser-game",
+  },
+  {
+    id: "ev015",
+    title: "Icebath and Sauna",
+    category: "Active & Health",
+    location: "Secret Garden",
+    organizer: "Shining Lotus Co., Ltd.",
+    date: "everyday",
+    description:
+      "A recovery and relaxation experience for people who enjoy sports, entertainment, and wellness routines.",
+    imageUrl: "/ImgEvent/EV015.jpg",
+    tags: ["Sports", "Entertainment"],
+    relatedEventId: "active-health-9-icebath-and-sauna",
+  },
+  {
+    id: "ev016",
+    title: "Lumphini Aerobics",
+    category: "Active & Health",
+    location: "Lumphini Park",
+    organizer: "Bangkok",
+    date: "everyday",
+    description:
+      "A casual public aerobics activity for people looking for movement and community.",
+    imageUrl: "/ImgEvent/EV016.jpg",
+    tags: ["Activities", "Community"],
+    relatedEventId: "active-health-10-เต-นแอโรบ-กสวนล-ม",
+  },
+  {
+    id: "ev017",
+    title: "BDI Hackathon 2026",
+    category: "Founder & Hackathon",
     location: "True Digital Park",
-    organizer: "Bangkok AI Community",
-    date: "July 24, 2026",
-    description: "Join people curious about AI demos, tech talks, and practical experiments in Bangkok.",
-    tags: ["ai", "technology", "meetup", "community"],
+    organizer: "BDI Thailand",
+    date: "September 5, 2026",
+    description:
+      "A builder-focused hackathon for people interested in AI, startups, software development, and product ideas.",
+    imageUrl: "/ImgEvent/EV012.png",
+    tags: ["Hackathon", "AI", "Startup", "Software Development"],
+    relatedEventId: "founder-hackathon-7-bdi-hackathon-2026",
   },
   {
-    id: "opp-003",
-    title: "Riverside Photo Walk",
-    category: "Photography",
-    location: "Charoen Krung",
-    organizer: "Bangkok Photo Walks",
-    date: "August 3, 2026",
-    description: "Explore street scenes, galleries, and river views with people who enjoy photography and design.",
-    tags: ["photography", "art", "design", "community"],
+    id: "ev018",
+    title: "KBTG Tech Meetup",
+    category: "Founder & Hackathon",
+    location: "KBTG Building",
+    organizer: "KBTG",
+    date: "September 12, 2026",
+    description:
+      "A tech meetup for engineers, students, and product builders exploring software and AI trends.",
+    imageUrl: "/ImgEvent/EV012.png",
+    tags: ["Software Development", "AI", "Machine Learning", "Hackathon"],
+    relatedEventId: "founder-hackathon-8-kbtg-tech-meetup",
   },
   {
-    id: "opp-004",
-    title: "Tech Makers Meetup",
-    category: "Technology",
-    location: "True Digital Park",
-    organizer: "Bangkok Makers Club",
-    date: "August 8, 2026",
-    description: "Meet technology fans building apps, gadgets, small projects, and creative side experiments.",
-    tags: ["technology", "startup", "meetup", "community"],
-    relatedEventId: "evt-004",
-  },
-  {
-    id: "opp-005",
-    title: "Volunteer Bangkok",
-    category: "Volunteer",
-    location: "Bang Rak Community Center",
-    organizer: "Volunteer Bangkok",
-    date: "August 12, 2026",
-    description: "Join people who care about local community projects, learning activities, and weekend volunteering.",
-    tags: ["volunteer", "community", "friends"],
-  },
-  {
-    id: "opp-006",
-    title: "UX Thailand Meetup",
-    category: "Art & Design",
-    location: "TCDC Bangkok",
-    organizer: "UX Thailand",
-    date: "August 18, 2026",
-    description: "Meet people interested in design, visual culture, research, and thoughtful digital experiences.",
-    tags: ["design", "art", "meetup", "community"],
-  },
-  {
-    id: "opp-007",
-    title: "E-Sports Gaming Meetup",
-    category: "Gaming",
+    id: "ev019",
+    title: "AI Bangkok Meetup",
+    category: "Founder & Hackathon",
     location: "Samyan Mitrtown",
-    organizer: "Bangkok Gaming Circle",
-    date: "August 23, 2026",
-    description: "Find teammates, watch casual matches, and meet people who follow games and online communities.",
-    tags: ["gaming", "sports", "community", "meetup"],
+    organizer: "Bangkok AI Community",
+    date: "September 18, 2026",
+    description:
+      "A practical AI meetup for people who want to learn, network, and collaborate on machine learning projects.",
+    imageUrl: "/ImgEvent/EV012.png",
+    tags: ["Hackathon", "AI", "Machine Learning", "Software Development", "Startup"],
+    relatedEventId: "founder-hackathon-9-ai-bangkok-meetup",
   },
   {
-    id: "opp-008",
-    title: "Weekend Football Social",
-    category: "Sports",
-    location: "Benjakitti Park",
-    organizer: "Bangkok Sports Social",
-    date: "August 30, 2026",
-    description: "Join a casual football session for people who want to stay active and meet new friends.",
-    tags: ["sports", "community", "friends"],
+    id: "ev020",
+    title: "Startup Thailand Meetup",
+    category: "Founder & Hackathon",
+    location: "Queen Sirikit National Convention Center",
+    organizer: "Startup Thailand",
+    date: "September 24, 2026",
+    description:
+      "A meetup for founders, marketers, designers, and students looking for startup collaborators.",
+    imageUrl: "/ImgEvent/EV012.png",
+    tags: ["Hackathon", "Startup", "Business", "Marketing", "Entrepreneurship"],
+    relatedEventId: "founder-hackathon-10-startup-thailand-meetup",
+  },
+  {
+    id: "ev021",
+    title: "Founder Networking Night",
+    category: "Founder & Hackathon",
+    location: "True Digital Park",
+    organizer: "MeetFan Founder Club",
+    date: "October 1, 2026",
+    description:
+      "A networking night for founders and builders looking for co-founders, collaborators, and community.",
+    imageUrl: "/ImgEvent/EV012.png",
+    tags: ["Hackathon", "Startup", "Entrepreneurship", "Business", "Product Design"],
+    relatedEventId: "founder-hackathon-11-founder-networking-night",
   },
 ];
+
+export const OPPORTUNITY_IMAGE_MAPPING = MOCK_OPPORTUNITIES.map(
+  ({ title, imageUrl }) => ({ title, imageUrl })
+);
+
+if (process.env.NODE_ENV !== "production") {
+  console.log("OPPORTUNITY_IMAGE_MAPPING", OPPORTUNITY_IMAGE_MAPPING);
+}
+
+export function hasRealOpportunityImage(
+  opportunity: Pick<Opportunity, "category" | "id" | "imageUrl">
+) {
+  const imageUrl = opportunity.imageUrl?.trim();
+  if (!imageUrl) return false;
+
+  return !(
+    opportunity.category === "Founder & Hackathon" &&
+    /^ev0?(17|18|19|20|21)$/.test(opportunity.id)
+  );
+}
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
 }
 
-function hasValue(values: string[], expected: string) {
-  const target = normalize(expected);
-  return values.some((value) => normalize(value) === target);
+function getMatchedTags(opportunity: Opportunity, profile: ProfileInfo) {
+  const userInterests = new Set(profile.interests.map(normalize));
+  return opportunity.tags.filter((tag) => userInterests.has(normalize(tag)));
 }
 
-function hasTag(opportunity: Opportunity, tag: string) {
-  return opportunity.tags.includes(tag);
+function getInterestScore(opportunity: Opportunity, profile: ProfileInfo) {
+  if (profile.interests.length === 0) return 0;
+
+  const matchedTags = getMatchedTags(opportunity, profile).length;
+  return Math.round((matchedTags / profile.interests.length) * 60);
+}
+
+function getMatchedGoals(opportunity: Opportunity, profile: ProfileInfo) {
+  return profile.goals.filter((goal) => {
+    const normalizedGoal = normalize(goal);
+
+    return (
+      (normalizedGoal.includes("hackathon") &&
+        opportunity.tags.some((tag) => normalize(tag) === "hackathon")) ||
+      (normalizedGoal.includes("startup") &&
+        opportunity.tags.some((tag) => normalize(tag) === "startup")) ||
+      (normalizedGoal.includes("networking") &&
+        opportunity.category === "Founder & Hackathon") ||
+      (normalizedGoal.includes("collaboration") &&
+        opportunity.category === "Founder & Hackathon") ||
+      (normalizedGoal.includes("learn") &&
+        opportunity.tags.some((tag) =>
+          ["AI", "Machine Learning", "Software Development"].includes(tag)
+        )) ||
+      (normalizedGoal.includes("career") &&
+        opportunity.tags.some((tag) =>
+          ["Business", "Marketing", "Software Development"].includes(tag)
+        )) ||
+      (normalizedGoal.includes("community") &&
+        opportunity.tags.some((tag) => normalize(tag) === "community"))
+    );
+  });
+}
+
+function getOccupationField(occupation: string | null) {
+  const normalized = normalize(occupation ?? "");
+  if (!normalized) return null;
+
+  if (
+    normalized.includes("computer") ||
+    normalized.includes("software") ||
+    normalized.includes("data") ||
+    normalized.includes("product") ||
+    normalized.includes("ux")
+  ) {
+    return "Technology";
+  }
+
+  if (
+    normalized.includes("marketing") ||
+    normalized.includes("business") ||
+    normalized.includes("founder") ||
+    normalized.includes("entrepreneur")
+  ) {
+    return "Business";
+  }
+
+  if (
+    normalized.includes("graphic") ||
+    normalized.includes("photo") ||
+    normalized.includes("content")
+  ) {
+    return "Creative";
+  }
+
+  return "General";
+}
+
+function getOccupationScore(opportunity: Opportunity, profile: ProfileInfo) {
+  const field = getOccupationField(profile.occupation);
+  if (!field) return 0;
+
+  if (
+    field === "Technology" &&
+    opportunity.tags.some((tag) =>
+      [
+        "AI",
+        "Machine Learning",
+        "Software Development",
+        "Hackathon",
+        "Product Design",
+        "UX/UI",
+      ].includes(tag)
+    )
+  ) {
+    return 15;
+  }
+
+  if (
+    field === "Business" &&
+    opportunity.tags.some((tag) =>
+      ["Startup", "Business", "Marketing", "Entrepreneurship"].includes(tag)
+    )
+  ) {
+    return 15;
+  }
+
+  if (
+    field === "Creative" &&
+    opportunity.tags.some((tag) =>
+      ["Photography", "Product Design", "UX/UI", "Activities"].includes(tag)
+    )
+  ) {
+    return 15;
+  }
+
+  return 0;
+}
+
+export function getScoreBreakdown(
+  opportunity: Opportunity,
+  profile: ProfileInfo
+): OpportunityScoreBreakdown {
+  const interests = getInterestScore(opportunity, profile);
+  const goals =
+    profile.goals.length > 0
+      ? Math.round(
+          (getMatchedGoals(opportunity, profile).length / profile.goals.length) *
+            25
+        )
+      : 0;
+  const occupation = getOccupationScore(opportunity, profile);
+  const hasDirectInterestMatch = getMatchedTags(opportunity, profile).length > 0;
+  const total = Math.min(
+    100,
+    Math.max(hasDirectInterestMatch ? 30 : 0, interests + goals + occupation)
+  );
+
+  return {
+    interests,
+    goals,
+    occupation,
+    total,
+  };
+}
+
+function hasProfileSignals(profile: ProfileInfo) {
+  return (
+    profile.interests.length > 0 ||
+    profile.goals.length > 0 ||
+    Boolean(profile.occupation)
+  );
 }
 
 export function getOpportunityById(id: string) {
   return MOCK_OPPORTUNITIES.find((opportunity) => opportunity.id === id) ?? null;
 }
 
-export function getMatchBreakdown(opportunity: Opportunity, profile: ProfileInfo) {
-  const breakdown: MatchBreakdownItem[] = [
-    {
-      label: "Similar Community",
-      reason: "People with similar interests joined",
-      points: 30,
-    },
-  ];
-  const occupation = normalize(profile.occupation ?? "");
+export function getMatchBreakdown(
+  opportunity: Opportunity,
+  profile: ProfileInfo
+) {
+  if (!hasProfileSignals(profile)) return [];
 
-  if (hasValue(profile.interests, "AI") && hasTag(opportunity, "ai")) {
-    breakdown.push({ label: "Shared AI Interest", reason: "You like AI", points: 45 });
-  }
-  if (hasValue(profile.interests, "Startup") && hasTag(opportunity, "startup")) {
-    breakdown.push({ label: "Shared Startup Interest", reason: "You like Startup", points: 35 });
-  }
-  if (hasValue(profile.interests, "Technology") && hasTag(opportunity, "technology")) {
-    breakdown.push({ label: "Shared Technology Interest", reason: "You like Technology", points: 45 });
-  }
-  if (hasValue(profile.interests, "Business") && hasTag(opportunity, "business")) {
-    breakdown.push({ label: "Shared Business Interest", reason: "You like Business", points: 30 });
-  }
-  if (hasValue(profile.interests, "Design") && (hasTag(opportunity, "design") || hasTag(opportunity, "art"))) {
-    breakdown.push({ label: "Shared Design Interest", reason: "You like Design", points: 45 });
-  }
-  if (hasValue(profile.interests, "Music") && (hasTag(opportunity, "music") || hasTag(opportunity, "live-performance"))) {
-    breakdown.push({ label: "Shared Music Interest", reason: "You like Music", points: 45 });
-  }
-  if (hasValue(profile.interests, "Gaming") && hasTag(opportunity, "gaming")) {
-    breakdown.push({ label: "Shared Gaming Interest", reason: "You like Gaming", points: 45 });
-  }
-  if (hasValue(profile.interests, "Sports") && hasTag(opportunity, "sports")) {
-    breakdown.push({ label: "Shared Sports Interest", reason: "You like Sports", points: 45 });
-  }
-  if (hasValue(profile.interests, "Volunteer") && hasTag(opportunity, "volunteer")) {
-    breakdown.push({ label: "Shared Volunteer Interest", reason: "You like Volunteer", points: 45 });
-  }
+  const matchedTags = getMatchedTags(opportunity, profile);
+  const matchedGoals = getMatchedGoals(opportunity, profile);
+  const breakdown: MatchBreakdownItem[] = matchedTags.map((tag) => ({
+    label: "Interest Match",
+    reason: `You like ${tag}`,
+    points: profile.interests.length > 0 ? 60 / profile.interests.length : 0,
+  }));
 
-  if (hasValue(profile.goals, "Networking") && (hasTag(opportunity, "meetup") || hasTag(opportunity, "networking"))) {
-    breakdown.push({ label: "Social Goal Bonus", reason: "You want to meet new people", points: 8 });
-  }
-  if (hasValue(profile.goals, "Learning") && (hasTag(opportunity, "learning") || hasTag(opportunity, "workshop"))) {
-    breakdown.push({ label: "Learning Goal Bonus", reason: "You enjoy learning with others", points: 8 });
-  }
-  if (hasValue(profile.goals, "Friends") && (hasTag(opportunity, "friends") || hasTag(opportunity, "community"))) {
-    breakdown.push({ label: "Friendship Goal Bonus", reason: "You want to make friends", points: 8 });
-  }
-  if (hasValue(profile.goals, "Volunteer Work") && hasTag(opportunity, "volunteer")) {
-    breakdown.push({ label: "Community Goal Bonus", reason: "You enjoy community activities", points: 8 });
-  }
+  matchedGoals.forEach((goal) => {
+    breakdown.push({
+      label: "Goal Match",
+      reason: `Matches your goal: ${goal}`,
+      points: 25 / Math.max(profile.goals.length, 1),
+    });
+  });
 
-  if (
-    (occupation.includes("developer") ||
-      occupation.includes("engineer") ||
-      occupation.includes("programmer")) &&
-    (hasTag(opportunity, "technology") || hasTag(opportunity, "ai"))
-  ) {
-    breakdown.push({ label: "Small Profile Bonus", reason: "Similar people joined this community", points: 5 });
-  }
-  if (occupation.includes("designer") && (hasTag(opportunity, "design") || hasTag(opportunity, "art"))) {
-    breakdown.push({ label: "Small Profile Bonus", reason: "Similar people joined this community", points: 5 });
-  }
-  if (occupation.includes("student") && (hasTag(opportunity, "meetup") || hasTag(opportunity, "community"))) {
-    breakdown.push({ label: "Small Profile Bonus", reason: "People like you also join", points: 5 });
+  if (getOccupationScore(opportunity, profile) > 0) {
+    breakdown.push({
+      label: "Occupation Match",
+      reason: "Matches your occupation field",
+      points: 15,
+    });
   }
 
   return breakdown;
 }
 
-export function calculateMatchScore(opportunity: Opportunity, profile: ProfileInfo) {
-  const total = getMatchBreakdown(opportunity, profile).reduce(
-    (sum, item) => sum + item.points,
-    0
-  );
+export function calculateMatchScore(
+  opportunity: Opportunity,
+  profile: ProfileInfo
+) {
+  if (!hasProfileSignals(profile) || opportunity.tags.length === 0) return 0;
 
-  return Math.min(total, 99);
+  return getScoreBreakdown(opportunity, profile).total;
 }
 
-export function getMatchDetails(opportunity: Opportunity, profile: ProfileInfo) {
+export function getMatchDetails(
+  opportunity: Opportunity,
+  profile: ProfileInfo
+) {
   const breakdown = getMatchBreakdown(opportunity, profile);
-  const matchScore = Math.min(
-    breakdown.reduce((sum, item) => sum + item.points, 0),
-    99
-  );
+  const scoreBreakdown = getScoreBreakdown(opportunity, profile);
+  const matchedTags = getMatchedTags(opportunity, profile);
+  const matchedTagSet = new Set(matchedTags.map(normalize));
+  const relatedInterestReasons = profile.interests
+    .filter((interest) => !matchedTagSet.has(normalize(interest)))
+    .filter((interest) =>
+      opportunity.tags.some((tag) => {
+        const normalizedTag = normalize(tag);
+        const normalizedInterest = normalize(interest);
+        return (
+          normalizedTag.includes(normalizedInterest) ||
+          normalizedInterest.includes(normalizedTag)
+        );
+      })
+    )
+    .map((interest) => `Matches your ${interest} interests`);
+  const reasons = [
+    ...breakdown
+      .filter((item) => item.label !== "Occupation Match")
+      .map((item) => item.reason),
+    ...relatedInterestReasons,
+    ...(matchedTags.length > 0 ? ["Similar community joined this event"] : []),
+  ];
 
   return {
-    matchScore,
+    matchScore: scoreBreakdown.total,
     breakdown,
-    reasons: breakdown.map((item) => item.reason),
+    scoreBreakdown,
+    reasons,
+    matchedTags,
   };
 }
 
 export function getRecommendations(profile: ProfileInfo) {
-  return MOCK_OPPORTUNITIES.map((opportunity) => ({
+  const scored = MOCK_OPPORTUNITIES.map((opportunity): ScoredOpportunity => ({
     ...opportunity,
     matchScore: calculateMatchScore(opportunity, profile),
-  }))
-    .sort((first, second) => second.matchScore - first.matchScore)
-    .slice(0, 3);
+    interestScore: getInterestScore(opportunity, profile),
+    matchedTagCount: getMatchedTags(opportunity, profile).length,
+  })).sort((first, second) => {
+    if (second.interestScore !== first.interestScore) {
+      return second.interestScore - first.interestScore;
+    }
+
+    if (second.matchScore !== first.matchScore) {
+      return second.matchScore - first.matchScore;
+    }
+
+    return first.title.localeCompare(second.title);
+  });
+  const matched = scored.filter((opportunity) => opportunity.matchScore > 0);
+  const fallback = scored.filter((opportunity) => opportunity.matchScore === 0);
+  const recommendations = [...matched, ...fallback];
+
+  return recommendations.slice(0, Math.max(3, Math.min(6, recommendations.length)));
 }

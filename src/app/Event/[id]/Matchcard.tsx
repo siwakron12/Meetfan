@@ -7,6 +7,15 @@ type MatchAttendee = {
   name: string;
   occupation?: string | null;
   district?: string | null;
+  interests?: string[];
+  goals?: string[];
+  matchScore?: number;
+  matchReasons?: string[];
+  matchBreakdown?: {
+    interests: number;
+    goals: number;
+    occupation: number;
+  };
   joinedAt?: string;
   avatar?: string;
 };
@@ -129,6 +138,63 @@ export default function MatchCard({
       </div>
 
       <h2 className="mt-4 text-lg font-bold text-gray-900">{attendee.name}</h2>
+      {attendee.occupation && (
+        <p className="mt-1 text-sm font-medium text-gray-500">
+          {attendee.occupation}
+        </p>
+      )}
+
+      <div className="mt-3 w-full rounded-2xl border border-rose-100 bg-rose-50 p-4 text-left">
+        <p className="text-center text-2xl font-extrabold text-rose-500">
+          {attendee.matchScore ?? 0}% Match
+        </p>
+        {attendee.matchBreakdown && (
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl bg-white px-2 py-2">
+              <p className="text-[10px] font-bold uppercase text-gray-400">
+                Interest
+              </p>
+              <p className="mt-1 text-sm font-extrabold text-gray-800">
+                {attendee.matchBreakdown.interests}%
+              </p>
+            </div>
+            <div className="rounded-xl bg-white px-2 py-2">
+              <p className="text-[10px] font-bold uppercase text-gray-400">
+                Goal
+              </p>
+              <p className="mt-1 text-sm font-extrabold text-gray-800">
+                {attendee.matchBreakdown.goals}%
+              </p>
+            </div>
+            <div className="rounded-xl bg-white px-2 py-2">
+              <p className="text-[10px] font-bold uppercase text-gray-400">
+                Occupation
+              </p>
+              <p className="mt-1 text-sm font-extrabold text-gray-800">
+                {attendee.matchBreakdown.occupation}%
+              </p>
+            </div>
+          </div>
+        )}
+        {attendee.matchReasons && attendee.matchReasons.length > 0 && (
+          <div className="mt-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+              Why We Match
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {attendee.matchReasons.slice(0, 5).map((reason) => (
+                <li
+                  key={reason}
+                  className="flex gap-2 text-sm font-medium leading-snug text-gray-700"
+                >
+                  <span className="text-emerald-500">✓</span>
+                  <span>{reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
       <p className="mt-1 text-xs text-gray-400">ลากการ์ดซ้าย/ขวา หรือกดปุ่มด้านล่าง</p>
 
